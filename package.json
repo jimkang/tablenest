@@ -1,0 +1,27 @@
+{
+  "name": "tablenest",
+  "version": "1.0.0",
+  "description": "Creates probability tables that expand references to other tables.",
+  "main": "index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jimkang/tablenest.git"
+  },
+  "keywords": [],
+  "author": "Jim Kang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jimkang/tablenest/issues"
+  },
+  "homepage": "https://github.com/jimkang/tablenest",
+  "devDependencies": {
+    "seedrandom": "^2.4.2",
+    "tape": "^3.0.3"
+  },
+  "dependencies": {
+    "probable": "^2.0.1"
+  }
+}
