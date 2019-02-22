@@ -1,7 +1,7 @@
 var Tablenest = require('../index');
 
 var slimeDef = {
-  root: [[1, '{ "name: "{name}",\n"Intelligences": {ints}}']],
+  root: [[1, '{"name: "{name}",\n"Intelligences": {ints}}']],
   name: [[4, '{base}{suffix}'], [1, '{prefix}{base}']],
   suffix: [
     [10, 'ly'],
@@ -42,12 +42,7 @@ var slimeDef = {
     [3, 'Bio'],
     [2, 'Crypto']
   ],
-  friendlike: [
-    [5, 'Buddy'],
-    [5, 'Pal'],
-    [4, 'Friend'],
-    [3, 'Companion']
-  ],
+  friendlike: [[5, 'Buddy'], [5, 'Pal'], [4, 'Friend'], [3, 'Companion']],
   base: [
     [1, 'Ice'],
     [1, 'Water'],
@@ -69,12 +64,7 @@ var slimeDef = {
     [1, 'Mental'],
     [1, 'Eat']
   ],
-  ints: [
-    [4, 2],
-    [3, 3],
-    [2, 4],
-    [1, 5]
-  ]
+  ints: [[4, 2], [3, 3], [2, 4], [1, 5]]
 };
 
 var tablenest = Tablenest();
@@ -83,4 +73,3 @@ var slimeTable = tablenest(slimeDef);
 for (var i = 0; i < 10; ++i) {
   console.log(slimeTable.roll());
 }
-
