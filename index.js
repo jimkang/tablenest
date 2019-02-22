@@ -1,21 +1,15 @@
 var createProbable = require('probable').createProbable;
 var keyRefRegex = /{(.*?)}/g;
 
-function Tablenest(createOpts) {
-  var random;
-
-  if (createOpts) {
-    random = createOpts.random;
-  }
-
+function Tablenest({ random }) {
   var probable = createProbable({
-    random: random
+    random
   });
 
   function tablenest(grammar) {
     var tablesForKeys = {};
     for (var key in grammar) {
-      tablesForKeys[key] = probable.createTableFromDef(grammar[key]);
+      tablesForKeys[key] = probable.createTableFromSizes(grammar[key]);
     }
 
     return {

@@ -3,89 +3,89 @@ var Tablenest = require('../index');
 var seedrandom = require('seedrandom');
 
 var bogGrammar = {
-  root: {
-    '0-49': '{activeScene}',
-    '50-74': '{inactiveScene}'
-  },
-  activeScene: {
-    '0-9': '{animalScene}',
-    '10-14': '{animalScene} {animalScene}',
-    '15-24': 'Bubbles blurble through the mud.'
-  },
-  inactiveScene: {
-    '0': '{plants} {locationVerb} {location}.',
-    '1': '{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.'
-  },
-  animalScene: {
-    '0': 'A {animal} {animalAction} {animalAdverb}.'
-  },
-  plants: {
-    '0': 'Vines',
-    '1-3': 'Lily pads',
-    '4-5': 'Wilted willows',
-    '6-9': 'Reeds'
-  },
-  locationVerb: {
-    '0': 'sprawl',
-    '1': 'rest',
-    '2-3': 'lie',
-    '4': 'sit'
-  },
-  location: {
-    '0-1': 'on the murky water',
-    '1-3': 'all around',
-    '4': 'everywhere',
-    '5': 'under the mud'
-  },
-  naturalEntity: {
-    '0': 'The wind',
-    '1-2': 'A foul stench',
-    '3': 'Humidity',
-    '4-5': 'Warmth'
-  },
-  naturalEntityAction: {
-    '0': 'rises',
-    '1-2': 'blows',
-    '3': 'hangs',
-    '4-5': 'permeates'
-  },
-  naturalEntityFieldOfInfluence: {
-    '0': 'above the muddy surface',
-    '1-2': 'about',
-    '3': 'in the air',
-    '4-5': 'under the oppressive sun'
-  },
-  animal: {
-    '0-3': 'frog',
-    '4': 'toad',
-    '5': 'lizard',
-    '6-7': 'snake',
-    '8': 'swarm of leeches',
-    '9': 'cluster of flies',
-    '10': 'muskrat',
-    '11': 'alligator',
-    '12': 'komodo dragon'
-  },
-  animalAction: {
-    '0-1': 'stretches',
-    '2': 'feasts on a carcass',
-    '3': 'turns toward you',
-    '4-5': 'lies',
-    '6': 'dances',
-    '7-8': 'rises from the muck',
-    '9-10': 'sleeps'
-  },
-  animalAdverb: {
-    '0-2': 'languidly',
-    '3': 'frantically',
-    '4': 'sloppily',
-    '5-6': 'lazily',
-    '7': 'aggressively',
-    '8': 'erratically',
-    '9': 'quickly',
-    '10-11': 'casually',
-    '12': 'formally'
-  }
+  root: [ 
+    [50, '{activeScene}'],
+    [25, '{inactiveScene}']
+  ],
+  activeScene: [
+    [10, '{animalScene}'],
+    [5, '{animalScene} {animalScene}'],
+    [10, 'Bubbles blurble through the mud.']
+  ],
+  inactiveScene: [
+    [1, '{plants} {locationVerb} {location}.'],
+    [1, '{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.']
+  ],
+  animalScene: [
+    [1, 'A {animal} {animalAction} {animalAdverb}.']
+  ],
+  plants: [
+    [1, 'Vines'],
+    [3, 'Lily pads'],
+    [2, 'Wilted willows'],
+    [4, 'Reeds']
+  ],
+  locationVerb: [
+    [1, 'sprawl'],
+    [1, 'rest'],
+    [2, 'lie'],
+    [1, 'sit']
+  ],
+  location: [
+    [2, 'on the murky water'],
+    [3, 'all around'],
+    [1, 'everywhere'],
+    [1, 'under the mud']
+  ],
+  naturalEntity: [
+    [1, 'The wind'],
+    [2, 'A foul stench'],
+    [1, 'Humidity'],
+    [2, 'Warmth']
+  ],
+  naturalEntityAction: [
+    [1, 'rises'],
+    [2, 'blows'],
+    [1, 'hangs'],
+    [2, 'permeates']
+  ],
+  naturalEntityFieldOfInfluence: [
+    [1, 'above the muddy surface'],
+    [2, 'about'],
+    [1, 'in the air'],
+    [2, 'under the oppressive sun']
+  ],
+  animal: [
+    [4, 'frog'],
+    [1, 'toad'],
+    [1, 'lizard'],
+    [2, 'snake'],
+    [1, 'swarm of leeches'],
+    [1, 'cluster of flies'],
+    [1, 'muskrat'],
+    [1, 'alligator'],
+    [1, 'komodo dragon']
+  ],
+  animalAction: [
+    [2, 'stretches'],
+    [1, 'feasts on a carcass'],
+    [1, 'turns toward you'],
+    [2, 'lies'],
+    [1, 'dances'],
+    [2, 'rises from the muck'],
+    [2, 'sleeps']
+  ],
+  animalAdverb: [
+    [3, 'languidly'],
+    [1, 'frantically'],
+    [1, 'sloppily'],
+    [2, 'lazily'],
+    [1, 'aggressively'],
+    [1, 'erratically'],
+    [1, 'quickly'],
+    [2, 'casually'],
+    [1, 'formally']
+  ]
 };
 
 var expectedResults = [
@@ -101,7 +101,7 @@ var random = seedrandom('test');
 expectedResults.forEach(runTest);
 
 function runTest(expected) {
-  test('Basic test', function basicTest(t) {
+  test('Basic test', function basicTest(t) { 
     var tablenest = Tablenest({
       random: random
     });
@@ -110,3 +110,4 @@ function runTest(expected) {
     t.end();
   });
 }
+
