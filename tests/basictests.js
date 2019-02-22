@@ -3,10 +3,7 @@ var Tablenest = require('../index');
 var seedrandom = require('seedrandom');
 
 var bogGrammar = {
-  root: [ 
-    [50, '{activeScene}'],
-    [25, '{inactiveScene}']
-  ],
+  root: [[50, '{activeScene}'], [25, '{inactiveScene}']],
   activeScene: [
     [10, '{animalScene}'],
     [5, '{animalScene} {animalScene}'],
@@ -14,23 +11,14 @@ var bogGrammar = {
   ],
   inactiveScene: [
     [1, '{plants} {locationVerb} {location}.'],
-    [1, '{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.']
+    [
+      1,
+      '{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.'
+    ]
   ],
-  animalScene: [
-    [1, 'A {animal} {animalAction} {animalAdverb}.']
-  ],
-  plants: [
-    [1, 'Vines'],
-    [3, 'Lily pads'],
-    [2, 'Wilted willows'],
-    [4, 'Reeds']
-  ],
-  locationVerb: [
-    [1, 'sprawl'],
-    [1, 'rest'],
-    [2, 'lie'],
-    [1, 'sit']
-  ],
+  animalScene: [[1, 'A {animal} {animalAction} {animalAdverb}.']],
+  plants: [[1, 'Vines'], [3, 'Lily pads'], [2, 'Wilted willows'], [4, 'Reeds']],
+  locationVerb: [[1, 'sprawl'], [1, 'rest'], [2, 'lie'], [1, 'sit']],
   location: [
     [2, 'on the murky water'],
     [3, 'all around'],
@@ -101,7 +89,7 @@ var random = seedrandom('test');
 expectedResults.forEach(runTest);
 
 function runTest(expected) {
-  test('Basic test', function basicTest(t) { 
+  test('Basic test', function basicTest(t) {
     var tablenest = Tablenest({
       random: random
     });
@@ -110,4 +98,3 @@ function runTest(expected) {
     t.end();
   });
 }
-

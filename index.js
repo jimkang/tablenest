@@ -25,8 +25,7 @@ function Tablenest({ random }) {
       var nextKeys = getKeyRefs(expatiated);
       if (nextKeys.length > 0) {
         return expatiateToDeath(expatiated, nextKeys);
-      }
-      else {
+      } else {
         return expatiated;
       }
     }
