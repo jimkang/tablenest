@@ -1,7 +1,7 @@
 var Tablenest = require('../index');
 
 var slimeDef = {
-  root: [[1, '{name}\nIntelligences: {ints}']],
+  root: [[1, '{ "name: "{name}",\n"Intelligences": {ints}}']],
   name: [[4, '{base}{suffix}'], [1, '{prefix}{base}']],
   suffix: [
     [10, 'ly'],

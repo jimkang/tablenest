@@ -1,5 +1,5 @@
 var createProbable = require('probable').createProbable;
-var keyRefRegex = /{(.*?)}/g;
+var keyRefRegex = /{(\S+?)}/g;
 
 function Tablenest(opts) {
   var probable;
