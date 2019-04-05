@@ -22,6 +22,6 @@
     "tape": "^4.10.1"
   },
   "dependencies": {
-    "probable": "^2.1.2"
+    "probable": "^2.1.3"
   }
 }

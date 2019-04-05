@@ -8,7 +8,8 @@ function Tablenest(opts) {
 
   if (opts) {
     probable = createProbable({
-      random: opts.random
+      random: opts.random,
+      recurse: false
     });
   } else {
     probable = createProbable();
@@ -29,13 +30,15 @@ function Tablenest(opts) {
     }
 
     function expatiateToDeath(thing) {
-      debugger;
       if (thing[needsToBeResolved]) {
         let type = typeof thing.target;
         if (type === 'string') {
           return expatiateString(thing.target);
         } else if (type === 'object') {
+          //if (Array.isArray(thing.target)) {
+          //} else {
           return expatiateObject(thing.target);
+          //}
         }
       } else {
         return thing;
@@ -87,7 +90,14 @@ function getKeyRefs(text) {
   return refs;
 }
 
-function markResolvable(target) {
+function markResolvable(n) {
+  var target = n;
+  // If this function is used as a template tag
+  // the arguments will be wrapped such that we'll
+  // have to pull the contents out.
+  if ('raw' in n) {
+    target = n[0];
+  }
   return {
     [needsToBeResolved]: true,
     target

@@ -87,10 +87,10 @@ var bogGrammar = {
 
 var expectedResults = [
   'Reeds rest all around.',
-  'A lizard lies formally. A komodo dragon stretches casually.',
-  'Vines lie all around.',
+  { text: 'Lily pads', subtext: 'Warmth', intensity: 99999 },
   'Bubbles blurble through the mud.',
-  'A muskrat stretches lazily.'
+  'Reeds sit all around.',
+  'A swarm of leeches rises from the muck lazily.'
 ];
 
 var random = seedrandom('test');
@@ -103,7 +103,7 @@ function runTest(expected) {
       random: random
     });
     var bogTable = tablenest(bogGrammar);
-    t.equal(bogTable.roll(), expected, 'Correct result is rolled.');
+    t.deepEqual(bogTable.roll(), expected, 'Correct result is rolled.');
     t.end();
   });
 }
