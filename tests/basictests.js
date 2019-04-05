@@ -1,22 +1,31 @@
 var test = require('tape');
-var Tablenest = require('../index');
+var { Tablenest, r } = require('../index');
 var seedrandom = require('seedrandom');
 
 var bogGrammar = {
-  root: [[50, '{activeScene}'], [25, '{inactiveScene}']],
+  root: [[50, r`activeScene`], [25, r`inactiveScene`]],
   activeScene: [
-    [10, '{animalScene}'],
-    [5, '{animalScene} {animalScene}'],
+    [
+      40,
+      r({
+        text: r`plants`,
+        subtext: r`naturalEntity`,
+        intensity: r`highNumber`
+      })
+    ],
+    [10, r`animalScene`],
+    [5, r`{animalScene} {animalScene}`],
     [10, 'Bubbles blurble through the mud.']
   ],
   inactiveScene: [
-    [1, '{plants} {locationVerb} {location}.'],
+    [1, r`{plants} {locationVerb} {location}.`],
     [
       1,
-      '{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.'
+      r`{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.`
     ]
   ],
-  animalScene: [[1, 'A {animal} {animalAction} {animalAdverb}.']],
+  highNumber: [[1, 1000], [1, 10000], [2, 99999], [4, 10000000]],
+  animalScene: [[1, r`A {animal} {animalAction} {animalAdverb}.`]],
   plants: [[1, 'Vines'], [3, 'Lily pads'], [2, 'Wilted willows'], [4, 'Reeds']],
   locationVerb: [[1, 'sprawl'], [1, 'rest'], [2, 'lie'], [1, 'sit']],
   location: [
