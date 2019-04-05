@@ -1,12 +1,15 @@
 var createProbable = require('probable').createProbable;
 var keyRefRegex = /{(\S+?)}/g;
 
+const needsToBeResolved = Symbol('resolveTarget');
+
 function Tablenest(opts) {
   var probable;
 
   if (opts) {
     probable = createProbable({
-      random: opts.random
+      random: opts.random,
+      recurse: false
     });
   } else {
     probable = createProbable();
@@ -19,30 +22,57 @@ function Tablenest(opts) {
     }
 
     return {
-      roll: roll
+      roll
     };
 
     function roll() {
-      return expatiateToDeath('{root}', ['root']);
+      return expatiateToDeath(tablesForKeys['root'].roll());
     }
 
-    function expatiateToDeath(text, keys) {
-      var expatiated = keys.reduce(expatiateKeyRef, text);
-      var nextKeys = getKeyRefs(expatiated);
-      if (nextKeys.length > 0) {
-        return expatiateToDeath(expatiated, nextKeys);
+    function expatiateToDeath(thing) {
+      if (thing[needsToBeResolved]) {
+        let type = typeof thing.target;
+        if (type === 'string') {
+          return expatiateString(thing.target);
+        } else if (type === 'object') {
+          //if (Array.isArray(thing.target)) {
+          //} else {
+          return expatiateObject(thing.target);
+          //}
+        }
       } else {
-        return expatiated;
+        return thing;
       }
     }
 
-    function expatiateKeyRef(text, key) {
-      var expatiated = text;
+    function expatiateString(text) {
+      var keys = getKeyRefs(text);
+      if (keys.length < 1) {
+        // The whole thing, then, is considered a key.
+        return expatiateToDeath(tablesForKeys[text].roll());
+      }
+
+      // If there are keys marked by {} within the string,
+      // we assume the result of this branch is a string,
+      // rather than another type entirely.
+      return expatiateToDeath(keys.reduce(expatiateKeyRefInString, text));
+    }
+
+    function expatiateKeyRefInString(text, key) {
+      var expatiated = text.slice();
       if (key in tablesForKeys) {
         var resolved = tablesForKeys[key].roll();
         expatiated = expatiated.replace('{' + key + '}', resolved);
       }
       return expatiated;
+    }
+
+    function expatiateObject(obj) {
+      var resolvedObj = {};
+      for (var key in obj) {
+        resolvedObj[key] = expatiateToDeath(obj[key]);
+      }
+      return resolvedObj;
     }
   }
 
@@ -60,4 +90,21 @@ function getKeyRefs(text) {
   return refs;
 }
 
-module.exports = Tablenest;
+function markResolvable(n) {
+  var target = n;
+  // If this function is used as a template tag
+  // the arguments will be wrapped such that we'll
+  // have to pull the contents out.
+  if ('raw' in n) {
+    target = n[0];
+  }
+  return {
+    [needsToBeResolved]: true,
+    target
+  };
+}
+
+module.exports = {
+  Tablenest,
+  r: markResolvable
+};
