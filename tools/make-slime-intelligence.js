@@ -7,7 +7,17 @@ var slimeDef = {
       r({
         name: r`name`,
         Intelligences: r`ints`,
-        INT: f(result => result.Intelligences + 2)
+        INT: f(result => result.Intelligences + 2),
+        cubicFt: f(result => result.Intelligences * 3),
+        AC: 8,
+        HD: f(result => ~~(result.Intelligences / 2)),
+        maxHP: f((result, p) => {
+          var total = 0;
+          for (var i = 0; i < result.HD; ++i) {
+            total += p.rollDie(8);
+          }
+          return total;
+        })
       })
     ]
   ],
@@ -73,7 +83,17 @@ var slimeDef = {
     [1, 'Mental'],
     [1, 'Eat']
   ],
-  ints: [[4, 2], [3, 3], [2, 4], [1, 5]]
+  ints: [[4, 2], [3, 3], [2, 4], [1, 5], [4, r`bigInts`]],
+  bigInts: [
+    [
+      1,
+      f((result, p) => p.rollDie(20)),
+      [
+        2,
+        f((result, p) => [0, 0, 0, 0, 0].reduce(sum => sum + p.rollDie(20), 20))
+      ]
+    ]
+  ]
 };
 
 var tablenest = Tablenest();

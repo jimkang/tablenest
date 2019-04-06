@@ -90,6 +90,10 @@ function Tablenest(opts) {
   }
 
   return tablenest;
+
+  function resolveAfterFirstPass(result, { fn, parent, key }) {
+    parent[key] = fn(result, probable);
+  }
 }
 
 function getKeyRefs(text) {
@@ -101,10 +105,6 @@ function getKeyRefs(text) {
   }
 
   return refs;
-}
-
-function resolveAfterFirstPass(result, { fn, parent, key }) {
-  parent[key] = fn(result);
 }
 
 function markResolvable(n) {
