@@ -22,6 +22,7 @@
     "tape": "^4.10.1"
   },
   "dependencies": {
+    "lodash.curry": "^4.1.1",
     "probable": "^2.1.3"
   }
 }
