@@ -1,11 +1,11 @@
-var Tablenest = require('../index');
+var { Tablenest, r } = require('../index');
 
 var slimeDef = {
-  root: [[1, '{"name: "{name}",\n"Intelligences": {ints}}']],
-  name: [[4, '{base}{suffix}'], [1, '{prefix}{base}']],
+  root: [[1, r({ name: r`name`, Intelligences: r`ints` })]],
+  name: [[4, r`{base}{suffix}`], [1, r`{prefix}{base}`]],
   suffix: [
     [10, 'ly'],
-    [3, ' {friendlike}'],
+    [3, r` {friendlike}`],
     [8, 'eo'],
     [4, 'ulo'],
     [5, 'sy'],
