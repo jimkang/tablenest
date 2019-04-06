@@ -1,11 +1,9 @@
 tablenest
 ==================
 
-Creates probability tables that expand references to other tables. Like [probable](https://www.npmjs.com/package/probable), but with [tracery](https://github.com/galaxykate/tracery)-like expansion.
+Creates probability tables that expand references to other tables. Uses [probable](https://www.npmjs.com/package/probable)and does L-system/[tracery](https://github.com/galaxykate/tracery)-like expansion of references to other rules.
 
-TODO:
-
-Also, it can generate objects and arrays and handle references within those objects and arrays.
+It can generate objects and arrays and handle references within those objects and arrays, not just strings.
 
 Installation
 ------------
@@ -15,26 +13,41 @@ Installation
 Usage
 -----
 
-    var Tablenest = require('tablenest');
+The package exports two functions:
+
+- `Tablenest`, which you use to construct tablenest functions that will convert grammars into table objects that will roll random results for you.
+- `r`, which you use to mark parts of your grammar that have references that tablenest needs to resolve as it walks down your grammar tree.
+
+    var { Tablenest, r } = require('../index');
+
     var tablenest = Tablenest({
       random: Math.random
     });
 
-    var bogTable = {
-      root: [[50, '{activeScene}'], [25, '{inactiveScene}']],
+    var bogTable = tablenest({
+      root: [[50, r`activeScene`], [25, r`inactiveScene`]],
       activeScene: [
-        [10, '{animalScene}'],
-        [5, '{animalScene} {animalScene}'],
+        [
+          40,
+          r({
+            text: r`plants`,
+            subtext: r`naturalEntity`,
+            intensity: r`highNumber`
+          })
+        ],
+        [10, r`animalScene`],
+        [5, r`{animalScene} {animalScene}`],
         [10, 'Bubbles blurble through the mud.']
       ],
       inactiveScene: [
-        [1, '{plants} {locationVerb} {location}.'],
+        [1, r`{plants} {locationVerb} {location}.`],
         [
           1,
-          '{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.'
+          r`{naturalEntity} {naturalEntityAction} {naturalEntityFieldOfInfluence}.`
         ]
       ],
-      animalScene: [[1, 'A {animal} {animalAction} {animalAdverb}.']],
+      highNumber: [[1, 1000], [1, 10000], [2, 99999], [4, 10000000]],
+      animalScene: [[1, r`A {animal} {animalAction} {animalAdverb}.`]],
       plants: [[1, 'Vines'], [3, 'Lily pads'], [2, 'Wilted willows'], [4, 'Reeds']],
       locationVerb: [[1, 'sprawl'], [1, 'rest'], [2, 'lie'], [1, 'sit']],
       location: [
@@ -92,13 +105,13 @@ Usage
         [2, 'casually'],
         [1, 'formally']
       ]
-    };
+    });
 
     console.log(bogTable.roll());
 
 Output:
 
-    A lizard lies formally. A komodo dragon stretches casually.
+    { text: 'Lily pads', subtext: 'Warmth', intensity: 99999 }
 
 TODO:
 
