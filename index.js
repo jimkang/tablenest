@@ -4,6 +4,7 @@ var curry = require('lodash.curry');
 var keyRefRegex = /{(\S+?)}/g;
 const needsToBeResolved = Symbol('resolveTarget');
 const needsToBeResolvedFnLater = Symbol('resolveFnLaterTarget');
+const readFromFirstPass = Symbol('readFromFirstPass');
 
 function Tablenest(opts) {
   var probable;
@@ -19,7 +20,7 @@ function Tablenest(opts) {
 
   function tablenest(grammar) {
     var tablesForKeys = {};
-    var afterFirstPassQueue = [];
+    var laterFnQueue = [];
     for (var key in grammar) {
       tablesForKeys[key] = probable.createTableFromSizes(grammar[key]);
     }
@@ -29,63 +30,78 @@ function Tablenest(opts) {
     };
 
     function roll() {
-      afterFirstPassQueue.length = 0;
-      var result = expatiateToDeath(tablesForKeys['root'].roll());
-      afterFirstPassQueue.forEach(curry(resolveFnLater)(result));
+      laterFnQueue.length = 0;
+      var result = expatiateToDeath(tablesForKeys['root'].roll(), null, []);
+      laterFnQueue.forEach(curry(resolveFnLater)(result));
       return result;
     }
 
-    function expatiateToDeath(thing, parent, key) {
+    function expatiateToDeath(thing, parent, keyPath) {
       if (thing[needsToBeResolved]) {
         let type = typeof thing.target;
         if (type === 'string') {
-          return expatiateString(thing.target, parent, key);
+          return expatiateString(thing.target, parent, keyPath);
         } else if (type === 'object') {
           //if (Array.isArray(thing.target)) {
           //} else {
-          return expatiateObject(thing.target);
+          return expatiateObject(thing.target, keyPath);
           //}
         }
       } else {
         if (thing[needsToBeResolvedFnLater]) {
-          afterFirstPassQueue.push({ fn: thing.fn, parent, key });
+          laterFnQueue.push({ fn: thing.fn, parent, key: getLast(keyPath) });
+        }
+        if (thing[readFromFirstPass]) {
+          //readFromFirstPassQueue.push({ targetParent: parent, targetKey: key, thing
         }
         return thing;
       }
     }
 
-    function expatiateString(text, parent, key) {
+    function expatiateString(text, parent, keyPath) {
       var keys = getKeyRefs(text);
       if (keys.length < 1) {
         // The whole thing, then, is considered a key.
-        return expatiateToDeath(tablesForKeys[text].roll(), parent, key);
+        return expatiateToDeath(
+          resolveWithGrammar(concat(keyPath, text)),
+          parent,
+          keyPath
+        );
       }
 
       // If there are keys marked by {} within the string,
       // we assume the result of this branch is a string,
       // rather than another type entirely.
       return expatiateToDeath(
-        keys.reduce(expatiateKeyRefInString, text),
+        keys.map(curry(concat)(keyPath)).reduce(expatiateKeyRefInString, text),
         parent,
-        key
+        keyPath
       );
     }
 
-    function expatiateKeyRefInString(text, key) {
+    function expatiateKeyRefInString(text, keyPath) {
       var expatiated = text.slice();
       if (key in tablesForKeys) {
-        var resolved = tablesForKeys[key].roll();
-        expatiated = expatiated.replace('{' + key + '}', resolved);
+        var resolved = resolveWithGrammar(keyPath);
+        expatiated = expatiated.replace(`{${key}}`, resolved);
       }
       return expatiated;
     }
 
-    function expatiateObject(obj) {
+    function expatiateObject(obj, keyPath) {
       var resolvedObj = {};
       for (var key in obj) {
-        resolvedObj[key] = expatiateToDeath(obj[key], resolvedObj, key);
+        resolvedObj[key] = expatiateToDeath(
+          obj[key],
+          resolvedObj,
+          concat(keyPath, key)
+        );
       }
       return resolvedObj;
+    }
+
+    function resolveWithGrammar(keyPath) {
+      return tablesForKeys[getLast(keyPath)].roll();
     }
   }
 
@@ -107,17 +123,27 @@ function getKeyRefs(text) {
   return refs;
 }
 
+function getRawVal(n) {
+  if ('raw' in n) {
+    return n[0];
+  }
+  return n;
+}
+
 function markResolvable(n) {
-  var target = n;
   // If this function is used as a template tag
   // the arguments will be wrapped such that we'll
   // have to pull the contents out.
-  if ('raw' in n) {
-    target = n[0];
-  }
   return {
     [needsToBeResolved]: true,
-    target
+    target: getRawVal(n)
+  };
+}
+
+function markReadFromFirstPass(n) {
+  return {
+    [readFromFirstPass]: true,
+    target: getRawVal(n)
   };
 }
 
@@ -128,8 +154,19 @@ function markForFnLater(fn) {
   };
 }
 
+function getLast(array) {
+  if (array.length > 0) {
+    return array[array.length - 1];
+  }
+}
+
+function concat(array, item) {
+  return array.concat([item]);
+}
+
 module.exports = {
   Tablenest,
   r: markResolvable,
-  f: markForFnLater
+  f: markForFnLater,
+  s: markReadFromFirstPass
 };
