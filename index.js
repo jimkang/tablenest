@@ -3,7 +3,7 @@ var curry = require('lodash.curry');
 
 var keyRefRegex = /{(\S+?)}/g;
 const needsToBeResolved = Symbol('resolveTarget');
-const needsToBeResolvedAfterFirstPass = Symbol('resolveAfterFirstPassTarget');
+const needsToBeResolvedFnLater = Symbol('resolveFnLaterTarget');
 
 function Tablenest(opts) {
   var probable;
@@ -31,7 +31,7 @@ function Tablenest(opts) {
     function roll() {
       afterFirstPassQueue.length = 0;
       var result = expatiateToDeath(tablesForKeys['root'].roll());
-      afterFirstPassQueue.forEach(curry(resolveAfterFirstPass)(result));
+      afterFirstPassQueue.forEach(curry(resolveFnLater)(result));
       return result;
     }
 
@@ -47,7 +47,7 @@ function Tablenest(opts) {
           //}
         }
       } else {
-        if (thing[needsToBeResolvedAfterFirstPass]) {
+        if (thing[needsToBeResolvedFnLater]) {
           afterFirstPassQueue.push({ fn: thing.fn, parent, key });
         }
         return thing;
@@ -91,7 +91,7 @@ function Tablenest(opts) {
 
   return tablenest;
 
-  function resolveAfterFirstPass(result, { fn, parent, key }) {
+  function resolveFnLater(result, { fn, parent, key }) {
     parent[key] = fn(result, probable);
   }
 }
@@ -121,9 +121,9 @@ function markResolvable(n) {
   };
 }
 
-function markForAfterFirstPass(fn) {
+function markForFnLater(fn) {
   return {
-    [needsToBeResolvedAfterFirstPass]: true,
+    [needsToBeResolvedFnLater]: true,
     fn
   };
 }
@@ -131,5 +131,5 @@ function markForAfterFirstPass(fn) {
 module.exports = {
   Tablenest,
   r: markResolvable,
-  f: markForAfterFirstPass
+  f: markForFnLater
 };
