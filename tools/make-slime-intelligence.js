@@ -6,6 +6,8 @@ var slimeDef = {
       1,
       r({
         base: r`base`,
+        prefix: r`prefix`,
+        suffix: r`suffix`,
         name: r`name`,
         Intelligences: r`ints`,
         INT: f(result => result.Intelligences + 2),
