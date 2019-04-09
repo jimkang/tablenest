@@ -2,7 +2,8 @@ var createProbable = require('probable').createProbable;
 var curry = require('lodash.curry');
 var getAtPath = require('get-at-path');
 
-var keyRefRegex = /{(\S+?)}/g;
+// Key refs are enclosed by {} and can have alphanumeric or / characters within.
+var keyRefRegex = /{([\S/]+?)}/g;
 const needsToBeResolved = Symbol('resolveTarget');
 const needsToBeResolvedFnLater = Symbol('resolveFnLaterTarget');
 const readFromFirstPass = Symbol('readFromFirstPass');
@@ -40,10 +41,10 @@ function Tablenest(opts) {
         [],
         resolveWithGrammar
       );
-      laterFnQueue.forEach(curry(resolveFnLater)(result));
       readFromFirstPassQueue.forEach(
         curry(resolveUsingFirstPassResult)(result)
       );
+      laterFnQueue.forEach(curry(resolveFnLater)(result));
       return result;
     }
 
@@ -65,7 +66,6 @@ function Tablenest(opts) {
         }
       } else {
         if (thing[needsToBeResolvedFnLater]) {
-          // TODO: REVISE?
           laterFnQueue.push({
             fn: thing.fn,
             parent,
@@ -103,7 +103,7 @@ function Tablenest(opts) {
       // TODO: Support parsing {something/anotherthing/key} into paths.
       for (var i = 0; i < keys.length; ++i) {
         textWithKeyRefsExpatiated = expatiateKeyRefInString(
-          [keys[i]],
+          getKeyPathFromKeyRef(keys[i]),
           resolve,
           textWithKeyRefsExpatiated
         );
@@ -219,6 +219,18 @@ function getLast(array) {
 
 function concat(array, item) {
   return array.concat([item]);
+}
+
+function getKeyPathFromKeyRef(ref) {
+  var parts = ref.split('/');
+  if (parts.length > 0) {
+    if (parts.length > 1) {
+      return parts;
+    } else {
+      return [ref];
+    }
+  }
+  return [];
 }
 
 module.exports = {

@@ -20,6 +20,46 @@ module.exports = {
             total += p.rollDie(8);
           }
           return total;
+        }),
+        hp: f(res => res.maxHP),
+        THAC0: f(res => 21 - res.HD),
+        absorbDmg: f(res => `1d${~~(res.Intelligences / 2) * 2}`),
+        mist: r({
+          form: f(res =>
+            ['Water', 'Slime', 'Digestion', 'Enzyme', 'Mud', 'Drip'].indexOf(
+              res.base
+            ) !== -1
+              ? 'spray'
+              : 'cloud'
+          ),
+          damage: f(res => `1d${~~(res.Intelligences / 2) * 2}`),
+          effect: f(res => {
+            var effectsForBases = {
+              Ice: 'become numb and unable to perform fine motor skills',
+              Water: 'all fires go out; clothes are soaked',
+              Fire: 'lose one random flammable item',
+              Earth: 'mild concussion, will vomit if hit this round',
+              Mist: 'blinded',
+              Void: 'get entranced by a vision of a black hole',
+              Slime: 'make DEX check or slip and fall',
+              Smoke: 'cough uncontrollably, unable to act',
+              Growth: 'body hair grows 1"',
+              Digestion: 'one unit of food melts',
+              Enzyme: 'saliva becomes extremely thick; unable to speak',
+              Decay: 'disease causes 1d3 damage per hour',
+              Spread: 'nothing, no damage even',
+              Absorb: 'nothing, no damage even',
+              Mud: 'make DEX check or slip and fall',
+              Mold: 'infected, 1d3 damage per hour',
+              Fungus: 'hallucinate, always gets directions wrong',
+              Drip: 'make DEX check or slip and fall',
+              Mental: 'relive bad memory, -1 to everything',
+              Eat: 'feel hunger, must spend the round eating',
+              Orb: 'nothing'
+            };
+            return effectsForBases[res.base];
+          }),
+          desc: s`{base} {mist/form}: save vs. poison or {mist/damage} and {mist/effect}`
         })
       })
     ]
