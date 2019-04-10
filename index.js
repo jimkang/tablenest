@@ -39,7 +39,9 @@ function Tablenest(opts) {
         tablesForKeys['root'].roll(),
         null,
         [],
-        resolveWithGrammar
+        curry(resolveWithGrammar)(tablesForKeys),
+        readFromFirstPassQueue,
+        laterFnQueue
       );
       readFromFirstPassQueue.forEach(
         curry(resolveUsingFirstPassResult)(result)
@@ -47,122 +49,161 @@ function Tablenest(opts) {
       laterFnQueue.forEach(curry(resolveFnLater)(result));
       return result;
     }
-
-    function expatiateToDeath(thing, parent, keyPathOnSource, resolve) {
-      if (thing[needsToBeResolved]) {
-        let type = typeof thing.target;
-        if (type === 'string') {
-          return expatiateString(
-            thing.target,
-            parent,
-            keyPathOnSource,
-            resolve
-          );
-        } else if (type === 'object') {
-          //if (Array.isArray(thing.target)) {
-          //} else {
-          return expatiateObject(thing.target, keyPathOnSource, resolve);
-          //}
-        }
-      } else {
-        if (thing[needsToBeResolvedFnLater]) {
-          laterFnQueue.push({
-            fn: thing.fn,
-            parent,
-            key: getLast(keyPathOnSource)
-          });
-        }
-        if (thing[readFromFirstPass]) {
-          readFromFirstPassQueue.push({
-            keyPathOnSource,
-            thing: { [needsToBeResolved]: true, target: thing.target }
-          });
-        }
-        return thing;
-      }
-    }
-
-    function expatiateString(text, parent, keyPathOnSource, resolve) {
-      var keys = getKeyRefs(text);
-      if (keys.length < 1) {
-        // The whole thing, then, is considered a key.
-        return expatiateToDeath(
-          resolve(concat(keyPathOnSource, text)),
-          parent,
-          keyPathOnSource,
-          resolve
-        );
-      }
-
-      // If there are keys marked by {} within the string,
-      // we assume the result of this branch is a string,
-      // rather than another type entirely.
-      var textWithKeyRefsExpatiated = text;
-      // keyRefs within text are special: For now we only support
-      // refs that refer to keys at the top level of the result.
-      // TODO: Support parsing {something/anotherthing/key} into paths.
-      for (var i = 0; i < keys.length; ++i) {
-        textWithKeyRefsExpatiated = expatiateKeyRefInString(
-          getKeyPathFromKeyRef(keys[i]),
-          resolve,
-          textWithKeyRefsExpatiated
-        );
-      }
-
-      return expatiateToDeath(
-        textWithKeyRefsExpatiated,
-        parent,
-        keyPathOnSource,
-        resolve
-      );
-    }
-
-    function expatiateKeyRefInString(keyPathOnSource, resolve, text) {
-      var key = getLast(keyPathOnSource);
-      var expatiated = text.slice();
-
-      var resolved = resolve(keyPathOnSource);
-      expatiated = expatiated.replace(`{${key}}`, resolved);
-
-      return expatiated;
-    }
-
-    function expatiateObject(obj, keyPathOnSource, resolve) {
-      var resolvedObj = {};
-      for (var key in obj) {
-        resolvedObj[key] = expatiateToDeath(
-          obj[key],
-          resolvedObj,
-          concat(keyPathOnSource, key),
-          resolve
-        );
-      }
-      return resolvedObj;
-    }
-
-    function resolveWithGrammar(keyPathOnSource) {
-      return tablesForKeys[getLast(keyPathOnSource)].roll();
-    }
-
-    function resolveUsingFirstPassResult(result, { thing, keyPathOnSource }) {
-      var parent = result;
-      keyPathOnSource.slice(0, -1).forEach(walkSegment);
-      parent[getLast(keyPathOnSource)] = expatiateToDeath(
-        thing,
-        parent,
-        keyPathOnSource,
-        curry(getAtPath)(result)
-      );
-
-      function walkSegment(segment) {
-        if (parent) {
-          parent = parent[segment];
-        }
-      }
-    }
   }
 
   return tablenest;
+
+  function expatiateToDeath(
+    thing,
+    parent,
+    keyPathOnSource,
+    resolve,
+    readFromFirstPassQueue,
+    laterFnQueue
+  ) {
+    if (thing[needsToBeResolved]) {
+      let type = typeof thing.target;
+      if (type === 'string') {
+        return expatiateString(
+          thing.target,
+          parent,
+          keyPathOnSource,
+          resolve,
+          readFromFirstPassQueue,
+          laterFnQueue
+        );
+      } else if (type === 'object') {
+        //if (Array.isArray(thing.target)) {
+        //} else {
+        return expatiateObject(
+          thing.target,
+          keyPathOnSource,
+          resolve,
+          readFromFirstPassQueue,
+          laterFnQueue
+        );
+        //}
+      }
+    } else {
+      if (thing[needsToBeResolvedFnLater]) {
+        laterFnQueue.push({
+          fn: thing.fn,
+          parent,
+          key: getLast(keyPathOnSource)
+        });
+      }
+      if (thing[readFromFirstPass]) {
+        readFromFirstPassQueue.push({
+          keyPathOnSource,
+          thing: { [needsToBeResolved]: true, target: thing.target }
+        });
+      }
+      return thing;
+    }
+  }
+
+  function expatiateString(
+    text,
+    parent,
+    keyPathOnSource,
+    resolve,
+    readFromFirstPassQueue,
+    laterFnQueue
+  ) {
+    var keys = getKeyRefs(text);
+    if (keys.length < 1) {
+      // The whole thing, then, is considered a key.
+      return expatiateToDeath(
+        resolve(concat(keyPathOnSource, text)),
+        parent,
+        keyPathOnSource,
+        resolve,
+        readFromFirstPassQueue,
+        laterFnQueue
+      );
+    }
+
+    // If there are keys marked by {} within the string,
+    // we assume the result of this branch is a string,
+    // rather than another type entirely.
+    var textWithKeyRefsExpatiated = text;
+    // keyRefs within text are special: For now we only support
+    // refs that refer to keys at the top level of the result.
+    // TODO: Support parsing {something/anotherthing/key} into paths.
+    for (var i = 0; i < keys.length; ++i) {
+      textWithKeyRefsExpatiated = expatiateKeyRefInString(
+        getKeyPathFromKeyRef(keys[i]),
+        resolve,
+        textWithKeyRefsExpatiated
+      );
+    }
+
+    return expatiateToDeath(
+      textWithKeyRefsExpatiated,
+      parent,
+      keyPathOnSource,
+      resolve,
+      readFromFirstPassQueue,
+      laterFnQueue
+    );
+  }
+
+  function expatiateKeyRefInString(keyPathOnSource, resolve, text) {
+    var key = getLast(keyPathOnSource);
+    var expatiated = text.slice();
+
+    var resolved = resolve(keyPathOnSource);
+    expatiated = expatiated.replace(`{${key}}`, resolved);
+
+    return expatiated;
+  }
+
+  function expatiateObject(
+    obj,
+    keyPathOnSource,
+    resolve,
+    readFromFirstPassQueue,
+    laterFnQueue
+  ) {
+    var resolvedObj = {};
+    for (var key in obj) {
+      resolvedObj[key] = expatiateToDeath(
+        obj[key],
+        resolvedObj,
+        concat(keyPathOnSource, key),
+        resolve,
+        readFromFirstPassQueue,
+        laterFnQueue
+      );
+    }
+    return resolvedObj;
+  }
+
+  function resolveWithGrammar(tablesForKeys, keyPathOnSource) {
+    return tablesForKeys[getLast(keyPathOnSource)].roll();
+  }
+
+  function resolveUsingFirstPassResult(
+    result,
+    { thing, keyPathOnSource, readFromFirstPassQueue, laterFnQueue }
+  ) {
+    var parent = result;
+    keyPathOnSource.slice(0, -1).forEach(walkSegment);
+    parent[getLast(keyPathOnSource)] = expatiateToDeath(
+      thing,
+      parent,
+      keyPathOnSource,
+      curry(getAtPath)(result),
+      readFromFirstPassQueue,
+      laterFnQueue
+    );
+
+    function walkSegment(segment) {
+      if (parent) {
+        parent = parent[segment];
+      }
+    }
+  }
 
   function resolveFnLater(result, { fn, parent, key }) {
     parent[key] = fn(result, probable);
