@@ -22,8 +22,6 @@ function Tablenest(opts) {
 
   function tablenest(grammar) {
     var tablesForKeys = {};
-    var laterFnQueue = [];
-    var readFromFirstPassQueue = [];
     for (var key in grammar) {
       tablesForKeys[key] = probable.createTableFromSizes(grammar[key]);
     }
@@ -33,9 +31,9 @@ function Tablenest(opts) {
     };
 
     function roll() {
-      laterFnQueue.length = 0;
-      readFromFirstPassQueue.length = 0;
-      var result = expatiateToDeath(
+      var laterFnQueue = [];
+      var readFromFirstPassQueue = [];
+      var { expatiated } = expatiateToDeath(
         tablesForKeys['root'].roll(),
         null,
         [],
@@ -43,11 +41,29 @@ function Tablenest(opts) {
         readFromFirstPassQueue,
         laterFnQueue
       );
-      readFromFirstPassQueue.forEach(
-        curry(resolveUsingFirstPassResult)(result)
-      );
-      laterFnQueue.forEach(curry(resolveFnLater)(result));
-      return result;
+      for (var i = 0; i < 10; ++i) {
+        //console.log('iteration', i);
+        let unresolvedQueue = [];
+        readFromFirstPassQueue.forEach(
+          curry(resolveUsingFirstPassResult)(
+            expatiated,
+            unresolvedQueue,
+            laterFnQueue
+          )
+        );
+
+        // TODO: Stop running all the functions on each iteration;
+        // They also need to be able to say whether they're resolved.
+        laterFnQueue.forEach(curry(resolveFnLater)(expatiated));
+
+        if (unresolvedQueue.length < 1) {
+          break;
+        } else {
+          readFromFirstPassQueue = unresolvedQueue.slice();
+        }
+      }
+
+      return expatiated;
     }
   }
 
@@ -93,12 +109,16 @@ function Tablenest(opts) {
         });
       }
       if (thing[readFromFirstPass]) {
-        readFromFirstPassQueue.push({
-          keyPathOnSource,
-          thing: { [needsToBeResolved]: true, target: thing.target }
-        });
+        if (readFromFirstPassQueue) {
+          readFromFirstPassQueue.push({
+            keyPathOnSource,
+            thing: { [needsToBeResolved]: true, target: thing.target }
+          });
+        } else {
+          console.log('No readFromFirstPassQueue.');
+        }
       }
-      return thing;
+      return { expatiated: thing, isResolved: true };
     }
   }
 
@@ -131,11 +151,16 @@ function Tablenest(opts) {
     // refs that refer to keys at the top level of the result.
     // TODO: Support parsing {something/anotherthing/key} into paths.
     for (var i = 0; i < keys.length; ++i) {
-      textWithKeyRefsExpatiated = expatiateKeyRefInString(
-        getKeyPathFromKeyRef(keys[i]),
+      let { expatiated, isResolved } = expatiateKeyRefInString(
+        keys[i],
         resolve,
         textWithKeyRefsExpatiated
       );
+      if (!isResolved) {
+        return { isResolved };
+      } else {
+        textWithKeyRefsExpatiated = expatiated;
+      }
     }
 
     return expatiateToDeath(
@@ -148,14 +173,17 @@ function Tablenest(opts) {
     );
   }
 
-  function expatiateKeyRefInString(keyPathOnSource, resolve, text) {
-    var key = getLast(keyPathOnSource);
+  function expatiateKeyRefInString(keyPathString, resolve, text) {
+    var keyPathOnSource = getKeyPathFromKeyRef(keyPathString);
     var expatiated = text.slice();
 
-    var resolved = resolve(keyPathOnSource);
-    expatiated = expatiated.replace(`{${key}}`, resolved);
+    var value = resolve(keyPathOnSource);
+    var isResolved = !hasMarkers(value);
+    if (isResolved) {
+      expatiated = expatiated.replace(`{${keyPathString}}`, value);
+    }
 
-    return expatiated;
+    return { expatiated, isResolved };
   }
 
   function expatiateObject(
@@ -167,7 +195,7 @@ function Tablenest(opts) {
   ) {
     var resolvedObj = {};
     for (var key in obj) {
-      resolvedObj[key] = expatiateToDeath(
+      let { isResolved, expatiated } = expatiateToDeath(
         obj[key],
         resolvedObj,
         concat(keyPathOnSource, key),
@@ -175,8 +203,13 @@ function Tablenest(opts) {
         readFromFirstPassQueue,
         laterFnQueue
       );
+      if (!isResolved) {
+        return { isResolved };
+      } else {
+        resolvedObj[key] = expatiated;
+      }
     }
-    return resolvedObj;
+    return { expatiated: resolvedObj, isResolved: true };
   }
 
   function resolveWithGrammar(tablesForKeys, keyPathOnSource) {
@@ -185,18 +218,26 @@ function Tablenest(opts) {
 
   function resolveUsingFirstPassResult(
     result,
-    { thing, keyPathOnSource, readFromFirstPassQueue, laterFnQueue }
+    unresolvedQueue,
+    laterFnQueue,
+    { thing, keyPathOnSource }
   ) {
     var parent = result;
     keyPathOnSource.slice(0, -1).forEach(walkSegment);
-    parent[getLast(keyPathOnSource)] = expatiateToDeath(
+    var { isResolved, expatiated } = expatiateToDeath(
       thing,
       parent,
       keyPathOnSource,
       curry(getAtPath)(result),
-      readFromFirstPassQueue,
+      null,
       laterFnQueue
     );
+    if (isResolved) {
+      parent[getLast(keyPathOnSource)] = expatiated;
+    } else {
+      // Try again later.
+      unresolvedQueue.push({ keyPathOnSource, thing });
+    }
 
     function walkSegment(segment) {
       if (parent) {
@@ -272,6 +313,12 @@ function getKeyPathFromKeyRef(ref) {
     }
   }
   return [];
+}
+
+function hasMarkers(n) {
+  return (
+    n[needsToBeResolved] || n[needsToBeResolvedFnLater] || n[readFromFirstPass]
+  );
 }
 
 module.exports = {
