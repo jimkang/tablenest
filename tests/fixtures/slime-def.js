@@ -1,4 +1,4 @@
-var { r, f, s } = require('../../index');
+var { r, f, s, m } = require('../../index');
 
 module.exports = {
   root: [
@@ -60,6 +60,32 @@ module.exports = {
             return effectsForBases[res.base];
           }),
           desc: s`{base} {mist/form}: save vs. poison or {mist/damage} and {mist/effect}`
+        }),
+        color: m({
+          target: '{base}',
+          map: {
+            Ice: 'lightblue',
+            Water: 'blue',
+            Fire: 'red',
+            Earth: 'brown',
+            Mist: 'white',
+            Void: '#888',
+            Slime: 'green',
+            Smoke: '#999',
+            Growth: 'yellow',
+            Digestion: 'orange',
+            Enzyme: 'purple',
+            Decay: '#bbb',
+            Spread: 'turquiose',
+            Absorb: 'magenta',
+            Mud: 'brown',
+            Mold: '#8f0',
+            Fungus: 'gray',
+            Drip: '#00a',
+            Mental: 'purple',
+            Eat: 'brown',
+            Orb: 'pink'
+          }
         })
       })
     ]

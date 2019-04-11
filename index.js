@@ -7,6 +7,7 @@ var keyRefRegex = /{([\S/]+?)}/g;
 const needsToBeResolved = Symbol('resolveTarget');
 const needsToBeResolvedFnLater = Symbol('resolveFnLaterTarget');
 const readFromFirstPass = Symbol('readFromFirstPass');
+const lookUpInMap = Symbol('lookUpInMap');
 
 function Tablenest(opts) {
   var probable;
@@ -109,15 +110,30 @@ function Tablenest(opts) {
         });
       }
       if (thing[readFromFirstPass]) {
-        if (readFromFirstPassQueue) {
-          readFromFirstPassQueue.push({
-            keyPathOnSource,
-            thing: { [needsToBeResolved]: true, target: thing.target }
-          });
-        } else {
-          console.log('No readFromFirstPassQueue.');
+        if (!readFromFirstPassQueue) {
+          throw new Error('Missing readFromFirstPassQueue!');
         }
+        readFromFirstPassQueue.push({
+          keyPathOnSource,
+          thing: { [needsToBeResolved]: true, target: thing.target }
+        });
+      } else if (thing[lookUpInMap]) {
+        if (!readFromFirstPassQueue) {
+          throw new Error('Missing readFromFirstPassQueue!');
+        }
+        readFromFirstPassQueue.push({
+          // Here, the source is the map.
+          keyPathOnSource: thing.target.split('/'),
+          targetParent: parent,
+          targetKey: getLast(keyPathOnSource),
+          thing: {
+            [needsToBeResolved]: true,
+            target: thing.target,
+            map: thing.map
+          }
+        });
       }
+
       return { expatiated: thing, isResolved: true };
     }
   }
@@ -220,20 +236,38 @@ function Tablenest(opts) {
     result,
     unresolvedQueue,
     laterFnQueue,
-    { thing, keyPathOnSource }
+    { thing, keyPathOnSource, targetParent, targetKey }
   ) {
     var parent = result;
+    var value;
     keyPathOnSource.slice(0, -1).forEach(walkSegment);
-    var { isResolved, expatiated } = expatiateToDeath(
-      thing,
-      parent,
-      keyPathOnSource,
-      curry(getAtPath)(result),
-      null,
-      laterFnQueue
-    );
+    if (thing.map) {
+      value = expatiateToDeath(
+        thing,
+        parent,
+        keyPathOnSource,
+        curry(getAtPathThenPutThroughMap)(thing.map, result),
+        null,
+        laterFnQueue
+      );
+    } else {
+      value = expatiateToDeath(
+        thing,
+        parent,
+        keyPathOnSource,
+        curry(getAtPath)(result),
+        null,
+        laterFnQueue
+      );
+    }
+    var { isResolved, expatiated } = value;
     if (isResolved) {
-      parent[getLast(keyPathOnSource)] = expatiated;
+      if (targetParent && targetKey) {
+        // TODO: Should everything use targetParent and targetKey?
+        targetParent[targetKey] = expatiated;
+      } else {
+        parent[getLast(keyPathOnSource)] = expatiated;
+      }
     } else {
       // Try again later.
       unresolvedQueue.push({ keyPathOnSource, thing });
@@ -293,6 +327,14 @@ function markForFnLater(fn) {
   };
 }
 
+function markLookUpInMap({ target, map }) {
+  return {
+    [lookUpInMap]: true,
+    target,
+    map
+  };
+}
+
 function getLast(array) {
   if (array.length > 0) {
     return array[array.length - 1];
@@ -317,13 +359,22 @@ function getKeyPathFromKeyRef(ref) {
 
 function hasMarkers(n) {
   return (
-    n[needsToBeResolved] || n[needsToBeResolvedFnLater] || n[readFromFirstPass]
+    n[needsToBeResolved] ||
+    n[needsToBeResolvedFnLater] ||
+    n[readFromFirstPass] ||
+    n[lookUpInMap]
   );
+}
+
+function getAtPathThenPutThroughMap(map, result, keyPath) {
+  var valueAtPath = getAtPath(result, keyPath);
+  return map[valueAtPath];
 }
 
 module.exports = {
   Tablenest,
   r: markResolvable,
   f: markForFnLater,
-  s: markReadFromFirstPass
+  s: markReadFromFirstPass,
+  m: markLookUpInMap
 };

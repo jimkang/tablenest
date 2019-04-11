@@ -24,7 +24,8 @@ var expectedResults = [
       effect: 'make DEX check or slip and fall',
       desc:
         'Slime spray: save vs. poison or 1d2 and make DEX check or slip and fall'
-    }
+    },
+    color: 'green'
   },
   {
     base: 'Slime',
@@ -46,7 +47,8 @@ var expectedResults = [
       effect: 'make DEX check or slip and fall',
       desc:
         'Slime spray: save vs. poison or 1d2 and make DEX check or slip and fall'
-    }
+    },
+    color: 'green'
   },
   {
     base: 'Ice',
@@ -68,7 +70,8 @@ var expectedResults = [
       effect: 'become numb and unable to perform fine motor skills',
       desc:
         'Ice cloud: save vs. poison or 1d2 and become numb and unable to perform fine motor skills'
-    }
+    },
+    color: 'lightblue'
   },
   {
     base: 'Spread',
@@ -89,7 +92,8 @@ var expectedResults = [
       damage: '1d4',
       effect: 'nothing, no damage even',
       desc: 'Spread cloud: save vs. poison or 1d4 and nothing, no damage even'
-    }
+    },
+    color: 'turquiose'
   },
   {
     base: 'Growth',
@@ -110,7 +114,8 @@ var expectedResults = [
       damage: '1d8',
       effect: 'body hair grows 1"',
       desc: 'Growth cloud: save vs. poison or 1d18 and body hair grows 1"'
-    }
+    },
+    color: 'yellow'
   }
 ];
 
