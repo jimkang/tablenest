@@ -1,7 +1,7 @@
 tablenest
 ==================
 
-Creates probability tables that expand references to other tables. Uses [probable](https://www.npmjs.com/package/probable)and does L-system/[tracery](https://github.com/galaxykate/tracery)-like expansion of references to other rules.
+Creates probability tables that expand references to other tables. Uses [probable](https://www.npmjs.com/package/probable) and does L-system/[tracery](https://github.com/galaxykate/tracery)-like expansion of references to other rules.
 
 It can generate objects and arrays and handle references within those objects and arrays, not just strings.
 
