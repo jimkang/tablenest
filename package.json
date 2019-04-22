@@ -1,6 +1,6 @@
 {
   "name": "tablenest",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "Creates probability tables that expand references to other tables.",
   "main": "index.js",
   "scripts": {
