@@ -1,4 +1,4 @@
-var { r, f } = require('../../index');
+var { r, f, l } = require('../../index');
 var range = require('d3-array').range;
 
 module.exports = {
@@ -16,8 +16,8 @@ module.exports = {
   // kind of literal marker so
   // an array result can be used.
   typeOrder: [
-    [1, f(() => ['default', 'ammonites'])],
-    [1, f(() => ['ammonites', 'default'])]
+    [1, l(['default', 'ammonites'])],
+    [1, l(['ammonites', 'default'])]
   ],
   typeMix: [
     [1, f(o => range(o.size).map(() => o.types[0]))], // One type

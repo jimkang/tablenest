@@ -8,6 +8,7 @@ const needsToBeResolved = Symbol('resolveTarget');
 const needsToBeResolvedFnLater = Symbol('resolveFnLaterTarget');
 const readFromFirstPass = Symbol('readFromFirstPass');
 const lookUpInMap = Symbol('lookUpInMap');
+const literal = Symbol('literal');
 
 function Tablenest(opts) {
   var probable;
@@ -132,6 +133,8 @@ function Tablenest(opts) {
             map: thing.map
           }
         });
+      } else if (thing[literal]) {
+        thing = thing.target;
       }
 
       return { expatiated: thing, isResolved: true };
@@ -327,6 +330,13 @@ function markForFnLater(fn) {
   };
 }
 
+function markLiteral(n) {
+  return {
+    [literal]: true,
+    target: n
+  };
+}
+
 function markLookUpInMap({ target, map }) {
   return {
     [lookUpInMap]: true,
@@ -362,7 +372,8 @@ function hasMarkers(n) {
     n[needsToBeResolved] ||
     n[needsToBeResolvedFnLater] ||
     n[readFromFirstPass] ||
-    n[lookUpInMap]
+    n[lookUpInMap] ||
+    n[literal]
   );
 }
 
@@ -376,5 +387,6 @@ module.exports = {
   r: markResolvable,
   f: markForFnLater,
   s: markReadFromFirstPass,
-  m: markLookUpInMap
+  m: markLookUpInMap,
+  l: markLiteral
 };
