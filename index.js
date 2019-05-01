@@ -1,6 +1,7 @@
 var createProbable = require('probable').createProbable;
 var curry = require('lodash.curry');
 var getAtPath = require('get-at-path');
+var DiceCup = require('dicecup');
 
 // Key refs are enclosed by {} and can have alphanumeric or / characters within.
 var keyRefRegex = /{([\S/]+?)}/g;
@@ -9,6 +10,7 @@ const needsToBeResolvedFnLater = Symbol('resolveFnLaterTarget');
 const readFromFirstPass = Symbol('readFromFirstPass');
 const lookUpInMap = Symbol('lookUpInMap');
 const literal = Symbol('literal');
+const dieRoll = Symbol('dieRoll');
 
 function Tablenest(opts) {
   var probable;
@@ -21,6 +23,8 @@ function Tablenest(opts) {
   } else {
     probable = createProbable();
   }
+
+  var cup = DiceCup({ probable });
 
   function tablenest(grammar) {
     var tablesForKeys = {};
@@ -135,6 +139,8 @@ function Tablenest(opts) {
         });
       } else if (thing[literal]) {
         thing = thing.target;
+      } else if (thing[dieRoll]) {
+        thing = getCupRollTotal(cup.roll(thing.target));
       }
 
       return { expatiated: thing, isResolved: true };
@@ -299,6 +305,8 @@ function getKeyRefs(text) {
   return refs;
 }
 
+// Every marker that is available in template string
+// needs to use this.
 function getRawVal(n) {
   if ('raw' in n) {
     return n[0];
@@ -334,6 +342,13 @@ function markLiteral(n) {
   return {
     [literal]: true,
     target: n
+  };
+}
+
+function markDieRoll(n) {
+  return {
+    [dieRoll]: true,
+    target: getRawVal(n)
   };
 }
 
@@ -373,7 +388,8 @@ function hasMarkers(n) {
     n[needsToBeResolvedFnLater] ||
     n[readFromFirstPass] ||
     n[lookUpInMap] ||
-    n[literal]
+    n[literal] ||
+    n[dieRoll]
   );
 }
 
@@ -382,11 +398,20 @@ function getAtPathThenPutThroughMap(map, result, keyPath) {
   return map[valueAtPath];
 }
 
+function getCupRollTotal(rollsArray) {
+  return rollsArray.reduce(addRollsTotal, 0);
+}
+
+function addRollsTotal(sum, rollsObject) {
+  return sum + isNaN(rollsObject.total) ? 0 : rollsObject.total;
+}
+
 module.exports = {
   Tablenest,
   r: markResolvable,
   f: markForFnLater,
   s: markReadFromFirstPass,
   m: markLookUpInMap,
-  l: markLiteral
+  l: markLiteral,
+  d: markDieRoll
 };

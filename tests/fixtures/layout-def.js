@@ -1,4 +1,4 @@
-var { r, f, l } = require('../../index');
+var { r, f, l, d } = require('../../index');
 var range = require('d3-array').range;
 
 module.exports = {
@@ -6,15 +6,12 @@ module.exports = {
     [
       1,
       r({
-        size: f((o, p) => p.rollDie(16) + p.rollDie(16)),
+        size: d`2d16`, // f((o, p) => p.rollDie(16) + p.rollDie(16)),
         types: r`typeOrder`,
         layout: r`typeMix`
       })
     ]
   ],
-  // TODO: tablenest needs some
-  // kind of literal marker so
-  // an array result can be used.
   typeOrder: [
     [1, l(['default', 'ammonites'])],
     [1, l(['ammonites', 'default'])]
