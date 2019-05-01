@@ -7,3 +7,10 @@ pushall:
 
 prettier:
 	prettier --single-quote --write "**/*.js"
+
+slimes:
+	node tools/run-def.js tests/fixtures/slime-def.js
+
+layouts:
+	node tools/run-def.js tests/fixtures/layout-def.js
+
