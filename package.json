@@ -23,7 +23,7 @@
     "tape": "^4.10.1"
   },
   "dependencies": {
-    "dicecup": "^1.1.1",
+    "dicecup": "^1.1.2",
     "get-at-path": "^1.0.1",
     "lodash.curry": "^4.1.1",
     "probable": "^2.1.4"
