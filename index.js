@@ -26,10 +26,22 @@ function Tablenest(opts) {
 
   var cup = DiceCup({ probable });
 
+  return tablenest;
+
   function tablenest(grammar) {
     var tablesForKeys = {};
     for (var key in grammar) {
-      tablesForKeys[key] = probable.createTableFromSizes(grammar[key]);
+      let tableDef = grammar[key];
+      // Check for use of abbreviated entry.
+      // (just <value> to indicate a table def of [[1, <value>]].
+      if (
+        !Array.isArray(tableDef) ||
+        tableDef.length < 1 ||
+        !Array.isArray(tableDef[0])
+      ) {
+        tableDef = [[1, tableDef]];
+      }
+      tablesForKeys[key] = probable.createTableFromSizes(tableDef);
     }
 
     return {
@@ -39,6 +51,7 @@ function Tablenest(opts) {
     function roll() {
       var laterFnQueue = [];
       var readFromFirstPassQueue = [];
+
       var { expatiated } = expatiateToDeath(
         tablesForKeys['root'].roll(),
         null,
@@ -72,8 +85,6 @@ function Tablenest(opts) {
       return expatiated;
     }
   }
-
-  return tablenest;
 
   function expatiateToDeath(
     thing,

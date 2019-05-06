@@ -146,6 +146,40 @@ Another example:
         [1, 'river]
       ]
     });
+
+
+Also supports abbreviated entries. If you have a part of your table def in which there is only one entry, instead of writing
+
+    {
+      root: [
+        [
+          1,
+          r({
+            image: r`literalSpinnerImages`,
+            r: f((result, p) => 5 + p.roll(20)),
+            duration: f((result, p) => `${0.2 + p.roll(10)}s`)
+          })
+        ]
+      ],
+      literalSpinnerImages: [
+        [2, 'redFidgetSpinner'],
+        [1, 'yellowFidgetSpinner']
+      ]
+    }
+
+you can write:
+
+    {
+      root: r({
+        image: r`literalSpinnerImages`,
+        r: f((result, p) => 5 + p.roll(20)),
+        duration: f((result, p) => `${0.2 + p.roll(10)}s`)
+      }),
+      literalSpinnerImages: [
+        [2, 'redFidgetSpinner'],
+        [1, 'yellowFidgetSpinner']
+      ]
+    }
  
 Tests
 -----
