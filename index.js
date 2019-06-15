@@ -10,6 +10,8 @@ const needsToBeResolvedFnLater = Symbol('resolveFnLaterTarget');
 const readFromFirstPass = Symbol('readFromFirstPass');
 const lookUpInMap = Symbol('lookUpInMap');
 const literal = Symbol('literal');
+// An array that, while not a `probable` definition table, should be recursed to resolve its elements' values.
+//const recurseableArray = Symbol('recurseableArray');
 const dieRoll = Symbol('dieRoll');
 
 function Tablenest(opts) {
@@ -35,7 +37,7 @@ function Tablenest(opts) {
       // Check for use of abbreviated entry.
       // (just <value> to indicate a table def of [[1, <value>]].
       if (
-        !Array.isArray(tableDef) ||
+        Array.isArray(tableDef) ||
         tableDef.length < 1 ||
         !Array.isArray(tableDef[0])
       ) {
@@ -106,16 +108,20 @@ function Tablenest(opts) {
           laterFnQueue
         );
       } else if (type === 'object') {
-        //if (Array.isArray(thing.target)) {
-        //} else {
-        return expatiateObject(
-          thing.target,
-          keyPathOnSource,
-          resolve,
-          readFromFirstPassQueue,
-          laterFnQueue
-        );
-        //}
+        if (Array.isArray(thing.target)) {
+          return {
+            expatiated: thing.target.map(expatiateArrayElement),
+            isResolved: true
+          };
+        } else {
+          return expatiateObject(
+            thing.target,
+            keyPathOnSource,
+            resolve,
+            readFromFirstPassQueue,
+            laterFnQueue
+          );
+        }
       }
     } else {
       if (thing[needsToBeResolvedFnLater]) {
@@ -155,6 +161,29 @@ function Tablenest(opts) {
       }
 
       return { expatiated: thing, isResolved: true };
+    }
+
+    function expatiateArrayElement(element) {
+      var { expatiated, isResolved } = expatiateToDeath(
+        element,
+        parent,
+        [],
+        resolve,
+        readFromFirstPassQueue,
+        laterFnQueue
+      );
+      if (isResolved) {
+        return expatiated;
+      } else {
+        return expatiateToDeath(
+          expatiated,
+          element,
+          [],
+          resolve,
+          readFromFirstPassQueue,
+          laterFnQueue
+        );
+      }
     }
   }
 
@@ -249,7 +278,12 @@ function Tablenest(opts) {
   }
 
   function resolveWithGrammar(tablesForKeys, keyPathOnSource) {
-    return tablesForKeys[getLast(keyPathOnSource)].roll();
+    var table = tablesForKeys[getLast(keyPathOnSource)];
+    if (table) {
+      return table.roll();
+    } else {
+      console.log('Could not find table at', keyPathOnSource);
+    }
   }
 
   function resolveUsingFirstPassResult(
