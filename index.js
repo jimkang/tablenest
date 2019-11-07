@@ -44,9 +44,13 @@ function Tablenest(opts) {
       tablesForKeys[key] = probable.createTableFromSizes(tableDef);
     }
 
-    return {
-      roll
-    };
+    // uglify-es (when either compressing or mangling) turns roll
+    // into a function that returns the actual roll function when you
+    // wrap it in an object this way.
+    //return {
+    //  roll
+    //};
+    return roll;
 
     function roll() {
       var laterFnQueue = [];

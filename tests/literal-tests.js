@@ -71,9 +71,9 @@ function runTest(expected) {
     var tablenest = Tablenest({
       random
     });
-    var layoutTable = tablenest(layoutDef);
+    var roll = tablenest(layoutDef);
     t.deepEqual(
-      layoutTable.roll(),
+      roll(),
       expected,
       'Correctly runs a def that has the literal marker and the die roll marker.'
     );

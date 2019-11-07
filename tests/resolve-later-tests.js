@@ -128,10 +128,10 @@ function runTest(expected) {
 
   function resolveLaterTest(t) {
     var tablenest = Tablenest({
-      random: random
+      random
     });
-    var slimeTable = tablenest(slimeDef);
-    t.deepEqual(slimeTable.roll(), expected, 'Correct result is rolled.');
+    var roll = tablenest(slimeDef);
+    t.deepEqual(roll(), expected, 'Correct result is rolled.');
     t.end();
   }
 }

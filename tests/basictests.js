@@ -102,8 +102,8 @@ function runTest(expected) {
     var tablenest = Tablenest({
       random: random
     });
-    var bogTable = tablenest(bogGrammar);
-    t.deepEqual(bogTable.roll(), expected, 'Correct result is rolled.');
+    var roll = tablenest(bogGrammar);
+    t.deepEqual(roll(), expected, 'Correct result is rolled.');
     t.end();
   });
 }

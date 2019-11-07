@@ -2,7 +2,6 @@ test:
 	node tests/basictests.js
 	node tests/resolve-later-tests.js
 	node tests/literal-tests.js
-	node tests/abbreviation-tests.js
 
 pushall:
 	git push origin master && npm publish

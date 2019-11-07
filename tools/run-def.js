@@ -11,7 +11,7 @@ var def = require(__dirname + '/../' + process.argv[2]);
 
 var tablenest = Tablenest();
 
-var table = tablenest(def);
+var roll = tablenest(def);
 for (var i = 0; i < 10; ++i) {
-  console.log(table.roll());
+  console.log(roll());
 }
